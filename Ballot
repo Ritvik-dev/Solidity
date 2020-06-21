@@ -1,0 +1,74 @@
+pragma solidity ^0.4.22;
+
+contract Ballot {
+    struct Voter {
+        uint weight;                                                    // weight is denoting importance of voter
+        bool voted;                                                     // if true, that person already voted
+        uint vote;                                                      // index of the voted proposal
+    }
+
+                                                                        // This is a type for a single proposal.
+    struct Proposal {
+        uint uid;                                                      // short id in integer form
+        uint voteCount;                                                // number of accumulated votes
+    }
+
+    address public chairperson;                                       //presiding over voting
+
+    mapping(address => Voter) public voters;
+
+    Proposal[] public uids;                                             //array of proposals or candidates in election
+
+    constructor(uint[] unique_id) public {
+        chairperson = msg.sender;                                       //address with which contract is deployed
+        voters[chairperson].weight = 2;
+
+        for (uint i = 0; i < unique_id.length; i++) {
+            uids.push(Proposal({
+                uid: unique_id[i],
+                voteCount: 0
+            }));
+        }
+    }
+
+    function giveRightToVote(address voter) public {
+        require(
+            msg.sender == chairperson,                                  //checks if voting right us given by chairperson
+            "Only chairperson can give right to vote."
+        );
+        require(
+            !voters[voter].voted,                                       //checks if voter has already voted
+            "The voter already voted."
+        );
+        require(voters[voter].weight == 0);
+        voters[voter].weight = 1;                                      //assigning weightage to voter
+    }
+
+   
+    function vote(uint proposal) public {
+        Voter storage sender = voters[msg.sender];
+        require(!sender.voted, "Already voted.");                      //checks if voter has already voted
+        sender.voted = true;
+        sender.vote = proposal;
+
+        uids[proposal].voteCount += sender.weight;                    //incrementing vote count as per weightage
+    }
+
+    function winningProposal() public view
+            returns (uint winningProposal_)
+    {
+        uint winningVoteCount = 0;
+        for (uint p = 0; p < uids.length; p++) {
+            if (uids[p].voteCount > winningVoteCount) {
+                winningVoteCount = uids[p].voteCount;
+                winningProposal_ = p;
+            }
+        }
+    }
+
+    function winnerName() public view
+            returns (uint winnerName_)
+    {
+        winnerName_ = uids[winningProposal()].uid;
+    }
+}
