@@ -1,5 +1,6 @@
 # Solidity
 A smart contract depicting Election process from Solidity Documentation
+
 Step 1 - Open Remix-Ethereum IDE
 
 Step 2 - Paste the code to IDE
